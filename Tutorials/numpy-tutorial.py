@@ -50,5 +50,17 @@ print(C @ D) # except for numerical uncertainties it's an identity matrix
 # Function for pseudo-inverse (from the left )
 E = np.random.rand(3, 2)
 print(np.linalg.pinv(E) @ E)
+print(E @ np.linalg.pinv(E)) # Not working
 
-# this is a change
+F = np.floor(C)
+G = np.ceil(C)
+
+w = np.concatenate((x, y))
+
+C = C.reshape(1,9)
+
+'''
+numpy introduces an upgrade of function range: np.arange() only doesn't work
+only with integers values, it can work with floats too etcetera... useful
+if we want to work with numbers who are not integers
+'''
