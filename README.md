@@ -1,6 +1,7 @@
 Code repository of Advanced Optimization-Based Robot Control
 
 Comando docker per runnare l'environment: 
+
 '''
 sudo docker run  -v /tmp/.X11-unix/:/tmp/.X11-unix/ -v /home/marco/Desktop/ORC:/home/student/mint --name ubuntu_bash --env="DISPLAY=$DISPLAY" --privileged -p 127.0.0.1:7000:7000 --shm-size 2g --rm -i -t --user=student     --workdir=/home/student andreadelprete/orc23:marco bash
 '''
