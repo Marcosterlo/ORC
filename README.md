@@ -13,8 +13,8 @@ Dal comando docker sostituire come environmental variable --env "DISPLAY=$DISPLA
 runnare poi
 
 '''
-sudo apt update
-sudo apt install pyqt5-dev-tools python3-pyqt5.qtsvg python3-pyqt5-qtwebengine
+sudo apt update &&
+sudo apt install pyqt5-dev-tools python3-pyqt5.qtsvg python3-pyqt5.qtwebengine &&
 pip install spyder
 '''
 
