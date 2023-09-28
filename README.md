@@ -8,7 +8,7 @@ sudo docker run  -v /tmp/.X11-unix/:/tmp/.X11-unix/ -v /home/marco/Desktop/ORC:/
 
 Fix dependencies per fare funzionare spyder:
 
-Dal comando docker sostituire come environmental variable --v "DISPLAY=$DISPLAY"
+Dal comando docker sostituire come environmental variable --env "DISPLAY=$DISPLAY"
 
 runnare poi
 
