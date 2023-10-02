@@ -1,0 +1,22 @@
+# Script 1
+As a first attempt we saw jumps in acceleration due to max velocity reached, this translates as a torque control input with jumps.
+Jumps in control input is not good: both acceleration and torque can jump but motors with gearboxes don't react well, they act like a spring.
+In a real robot it's better not to have discontinuities in control input. 
+We see discontinuities in other joints, as well as fixed ones due to physical coupling of joints.
+
+To emprove tracking performance we can augment the proportional gain, passing from 1 to 10 we see way better performances, the joint variables converge to reference trajectories.
+As regards joint velocities we still reach the limits a couple of times, this shows in the acceleration plot showing small amounts of time where acceleration drops to 0. 
+
+In a real implementation we don't want to make the gain too large, we have higher torques input. 
+The higher we have the frequency the higher we can tune the gains
+In real scenarios the higher the gain the more it is susceptible to noise
+
+# Script 2
+Now we have 2 tasks, one for joint space and one for end-effector. The problem definition is in tsid_manipulator.physical
+The plot of the end effector trajectory shows reference trajectory and real trajectory. In one direction we are a little off in some moments, we'll see why. It's the same for velocities
+Now, having added joint torques limit we see that in those same time instances we reach the joint limit, corresponding to tracking of ee slightly off.
+In order not to violate the torque limit we have to decrease a little bit the quality of the tracking, it´s what we want our controller to do, the priority lies in physical limitations, then follows the trajectory follow
+In joint velocities plot we see the limits are reached several times
+
+Now we remove the postural task putting the weight to 0, from the results we see the position of end effector is reached better, this because we no longer have limit on joint variables, sadly this is physically unfeasible.
+In the script the last joint continuosly rotates reaching 765 degrees of rotation, in a real robot this would break the robot.
