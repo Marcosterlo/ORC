@@ -10,6 +10,7 @@ from orc.utils.robot_wrapper import RobotWrapper
 from orc.utils.robot_simulator import RobotSimulator
 import A1_conf as conf
 
+
 print("".center(conf.LINE_WIDTH,'#'))
 print(" Manipulator: Impedence Control vs. Operational Space Control vs. Inverse Kinematics + Inverse Dynamics ".center(conf.LINE_WIDTH, '#'))
 print("".center(conf.LINE_WIDTH,'#'), '\n')
@@ -69,16 +70,21 @@ for (test_id, test) in  enumerate(tests):
 
     kp = test['kp']             # proportional gain of tracking task
     kd = 2*np.sqrt(kp)          # derivative gain of tracking task
+    
+    # ===================== Don't know where it's used =============================
     kp_j = 20.0                 # proportional gain of end effector task
     kd_j = 2*sqrt(kp_j)         # derivative gain of end effector task
+    # ===================== Don't know where it's used =============================
 
     freq = test['frequency']
 
+    # Tells the simulator to toggle the friction flag to 0 or 1
     if test['friction'] == 0:
         simu.simulate_coulomb_friction = 0
     else:
         simu.simulate_coulomb_friction = 1
 
+    # Gives the referred friction value as the maximum one to the simulation
     simu.tau_coulomb_max = test['friction']*np.ones(6)  # To overwrite the tau_coulomb_max in conf
     simu.init(conf.q0)                                  # initialize simulation state
     
@@ -100,12 +106,13 @@ for (test_id, test) in  enumerate(tests):
     t = 0.0
     PRINT_N = int(conf.PRINT_T/conf.dt)
     
+    # ============== FOR LOOP FOR EVERY SIMULATION STEP ===============
     for i in range(0, N):
         time_start = time.time()
         
         # set reference trajectory
         if conf.TRACK_TRAJ:
-            # set reference trajectory
+            # set reference trajectory: it defines for every time step the desired position, velocity and acceleration
             two_pi_f             = 2*np.pi*freq   # frequency (time 2 PI)
             two_pi_f_amp         = np.multiply(two_pi_f, conf.amp)
             two_pi_f_squared_amp = np.multiply(two_pi_f, two_pi_f_amp)
@@ -113,7 +120,7 @@ for (test_id, test) in  enumerate(tests):
             dx_ref[:,i]  = two_pi_f_amp * np.cos(two_pi_f*t + conf.phi)
             ddx_ref[:,i] = - two_pi_f_squared_amp * np.sin(two_pi_f*t + conf.phi)
         else:
-            # stabilize the point np.array([0.2,0.2,0.2])
+            # stabilize the point np.array([0.2,0.2,0.2]) with null velocity and acceleration
             x_ref[:,i]   = conf.x_ref_O
             dx_ref[:,i]  = 0.0
             ddx_ref[:,i] = 0.0
@@ -131,12 +138,13 @@ for (test_id, test) in  enumerate(tests):
         J6 = robot.frameJacobian(q[:,i], frame_id, False)
         J = J6[:3,:]                                                                    # take first 3 rows of J6
         H = robot.framePlacement(q[:,i], frame_id, False)
-        x[:,i] = H.translation                                                          # take the 3d position of the end-effector
+        x[:,i] = H.translation                                                          # take the actual 3d position of the end-effector
         v_frame = robot.frameVelocity(q[:,i], v[:,i], frame_id, False)
         dx[:,i] = v_frame.linear                                                        # take linear part of 6d velocity
         #    dx[:,i] = J.dot(v[:,i])
         dJdq = robot.frameAcceleration(q[:,i], v[:,i], None, frame_id, False).linear
-       
+        
+        '''
        
         # implement the components needed for your control laws here
         ddx_fb =                                                        # Feedback acceleration
@@ -147,7 +155,9 @@ for (test_id, test) in  enumerate(tests):
         # secondary task here
         J_T_pinv =                                          # Pseudo-inverse of J.T 
         NJ =                                                # Null space of the pseudo-inverse of J.T
+        # Maybe he refers to the exact definition instead of the simplified model
         NJ_moore =                                          # Null space of the Moore Penrose pseudo-inverse of J.T
+        # These should be initial joint accelerations and, consequently, initial joint torque
         ddq_pos_des =                                       # Let's choose ddq_pos_des to stabilize the initial joint configuration
         tau_0 =                                             # M*ddq_pos_des
 
@@ -175,6 +185,8 @@ for (test_id, test) in  enumerate(tests):
         else:
             print('ERROR: Unknown controller', test['controller'])
             sys.exit(0)
+        
+        '''
         
         # send joint torques to simulator
         simu.simulate(tau[:,i], conf.dt, conf.ndt)
