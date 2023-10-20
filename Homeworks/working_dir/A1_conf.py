@@ -34,11 +34,11 @@ randomize_robot_model = 0
 model_variation = 40.0
 
 # ====================== ALLOWED TO BE CHANGED ======================
-use_viewer = 0
+use_viewer = 1
 
 which_viewer = "no_gepetto"
 # ====================== ALLOWED TO BE CHANGED ======================
-simulate_real_time = 0          # flag specifying whether simulation should be real time or as fast as possible
+simulate_real_time = 1          # flag specifying whether simulation should be real time or as fast as possible
 
 PRINT_T = 10                   # print some info every PRINT_T seconds
 DISPLAY_T = 0.02              # update robot configuration in viwewer every DISPLAY_T seconds

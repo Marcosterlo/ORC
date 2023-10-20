@@ -15,10 +15,10 @@ print("".center(conf.LINE_WIDTH,'#'))
 print(" Manipulator: Impedence Control vs. Operational Space Control vs. Inverse Kinematics + Inverse Dynamics ".center(conf.LINE_WIDTH, '#'))
 print("".center(conf.LINE_WIDTH,'#'), '\n')
 
-PLOT_TORQUES = 0
-PLOT_EE_POS = 0
-PLOT_EE_VEL = 0
-PLOT_EE_ACC = 0
+PLOT_TORQUES = 1
+PLOT_EE_POS = 1
+PLOT_EE_VEL = 1
+PLOT_EE_ACC = 1
 
 r = loadUR()
 robot = RobotWrapper(r.model, r.collision_model, r.visual_model)
@@ -35,9 +35,11 @@ else:
     tests = []
 
     tests += [{'controller': 'IC_O_simpl',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),  'friction': 0}]        
+    '''
     tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),'friction': 0}]    
     tests += [{'controller': 'IC_O',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]              
     tests += [{'controller': 'IC_O_post',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]         
+    '''
 
     #tests += [{'controller': 'IC_O_simpl',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]        
     #tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]       
@@ -144,29 +146,38 @@ for (test_id, test) in  enumerate(tests):
         #    dx[:,i] = J.dot(v[:,i])
         dJdq = robot.frameAcceleration(q[:,i], v[:,i], None, frame_id, False).linear
         
-        '''
        
         # implement the components needed for your control laws here
-        ddx_fb =                                                        # Feedback acceleration
-        ddx_des[:,i] =                                                  # Desired acceleration
-        Minv =                                                          # M^-1
-        #...
+        ddx_fb = kp * (x_ref[:,i] - x[:,i]) + kd * (dx_ref[:,i] - dx[:,i])               # Feedback acceleration
+        ddx_des[:,i] = ddx_ref[:,i] + ddx_fb                                             # Desired acceleration
+        # Operational space inertia matrix definition: Lam = (J . (M)^-1 . J^T)^-1
+        Minv = inv(M)                                                                    # M^-1
+        #Lam = inv(J.dot(Minv.dot(np.transpose(J))))
+        Lam = inv(J @ Minv @ np.transpose(J))
+        #mu = Lam.dot(J.dot(Minv.dot(h)) - dJdq)
+        mu = Lam @ J @ Minv @ h - dJdq
         
-        # secondary task here
-        J_T_pinv =                                          # Pseudo-inverse of J.T 
-        NJ =                                                # Null space of the pseudo-inverse of J.T
-        # Maybe he refers to the exact definition instead of the simplified model
-        NJ_moore =                                          # Null space of the Moore Penrose pseudo-inverse of J.T
+        # Secondary task
+        
+        # Pseudo inverse of the jacobian transpose: J^(T#) = (J . M^-1 . J^T)^-1 . J . M^-1
+        #J_T_pinv = Lam.dot(J.dot(Minv))
+        J_T_pinv = Lam @ J @ Minv
+        #NJ = np.eye(v.shape[0]) - np.transpose(J).dot(J_T_pinv)                                                # Null space of the pseudo-inverse of J.T
+        NJ = np.eye(v.shape[0]) - np.transpose(J) @ J_T_pinv
+
+        # NJ_moore =                                          # Null space of the Moore Penrose pseudo-inverse of J.T
+        
         # These should be initial joint accelerations and, consequently, initial joint torque
-        ddq_pos_des =                                       # Let's choose ddq_pos_des to stabilize the initial joint configuration
-        tau_0 =                                             # M*ddq_pos_des
-
-
+        ddq_pos_ref = 0
+        dq_pos_ref = 0
+        ddq_pos_des = ddq_pos_ref + kp_j * (conf.q0 - q[:,1]) + kd_j * (dq_pos_ref - v[:, 1])                                      # Let's choose ddq_pos_des to stabilize the initial joint configuration
+        tau_0 = M*ddq_pos_des                                                                     # M*ddq_pos_des
 
         # define the control laws here
         if(test['controller']=='IC_O_simpl'):
-            tau[:,i] =        
-
+            tau[:,i] = np.transpose(J) @ mu
+        
+        '''
         elif(test['controller']=='IC_O_simpl_post'):
             tau[:,i] = 
 
@@ -177,7 +188,7 @@ for (test_id, test) in  enumerate(tests):
             tau[:,i] = 
 
         if(test['controller']=='OSC'):      # Operational Space Control
-            tau[:,i] = 
+            tau[:,i] = np.transpose(J) @ Lam @ ddx_des[:,i] + h
 
         elif(test['controller']=='IC'):     # Impedence Control
             tau[:,i] = 
