@@ -15,10 +15,10 @@ print("".center(conf.LINE_WIDTH,'#'))
 print(" Manipulator: Impedence Control vs. Operational Space Control vs. Inverse Kinematics + Inverse Dynamics ".center(conf.LINE_WIDTH, '#'))
 print("".center(conf.LINE_WIDTH,'#'), '\n')
 
-PLOT_TORQUES = 1
-PLOT_EE_POS = 1
-PLOT_EE_VEL = 1
-PLOT_EE_ACC = 1
+PLOT_TORQUES = 0
+PLOT_EE_POS = 0
+PLOT_EE_VEL = 0
+PLOT_EE_ACC = 0
 
 r = loadUR()
 robot = RobotWrapper(r.model, r.collision_model, r.visual_model)
@@ -35,13 +35,13 @@ else:
     tests = []
 
     tests += [{'controller': 'IC_O_simpl',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),  'friction': 0}]        
-    #tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),'friction': 0}]    
-    tests += [{'controller': 'IC_O',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]              
-    #tests += [{'controller': 'IC_O_post',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]         
+    tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),'friction': 0}]    
+    #tests += [{'controller': 'IC_O',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]              
+    tests += [{'controller': 'IC_O_post',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]         
 
-    tests += [{'controller': 'IC_O_simpl',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]        
+    #tests += [{'controller': 'IC_O_simpl',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]        
     #tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]       
-    tests += [{'controller': 'IC_O',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]               
+    #tests += [{'controller': 'IC_O',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]               
     #tests += [{'controller': 'IC_O_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]       
 
 
@@ -71,10 +71,8 @@ for (test_id, test) in  enumerate(tests):
     kp = test['kp']             # proportional gain of tracking task
     kd = 2*np.sqrt(kp)          # derivative gain of tracking task
     
-    # ===================== Don't know where it's used =============================
     kp_j = 20.0                 # proportional gain of end effector task
     kd_j = 2*sqrt(kp_j)         # derivative gain of end effector task
-    # ===================== Don't know where it's used =============================
 
     freq = test['frequency']
 
@@ -134,7 +132,7 @@ for (test_id, test) in  enumerate(tests):
         M = robot.mass(q[:,i], False)
         h = robot.nle(q[:,i], v[:,i], False)
         g = robot.gravity(q[:,i])
-
+        
         J6 = robot.frameJacobian(q[:,i], frame_id, False)
         J = J6[:3,:]                                                                    # take first 3 rows of J6
         H = robot.framePlacement(q[:,i], frame_id, False)
@@ -153,19 +151,20 @@ for (test_id, test) in  enumerate(tests):
         #Lam = inv(J.dot(Minv.dot(np.transpose(J))))
         Lam = inv(J @ Minv @ np.transpose(J))
         #mu = Lam.dot(J.dot(Minv.dot(h)) - dJdq)
-        mu = Lam @ J @ Minv @ h - dJdq
+        mu = Lam @ (J @ Minv @ h - dJdq)
 
         # User defined damping and stiffness matrix
         # We want to make the oscillation critically damped like
         # damping_ratio = c/2*sqrt(k*m)
-        k = 100
+        k = 1000
+        ratio = 1
         m1 = Lam[0, 0]
         m2 = Lam[1, 1]
         m3 = Lam[2, 2]
         B = np.empty(Lam.shape)*0
-        B[0, 0] = 2*np.sqrt(k*m1)
-        B[1, 1] = 2*np.sqrt(k*m2)
-        B[2, 2] = 2*np.sqrt(k*m3)
+        B[0, 0] = ratio*2*np.sqrt(k*m1)
+        B[1, 1] = ratio*2*np.sqrt(k*m2)
+        B[2, 2] = ratio*2*np.sqrt(k*m3)
         K = np.empty(Lam.shape)*0 + np.eye(Lam.shape[0])*k
         
         # Secondary task
@@ -174,19 +173,19 @@ for (test_id, test) in  enumerate(tests):
         #J_T_pinv = Lam.dot(J.dot(Minv))
         J_T_pinv = Lam @ J @ Minv
         #NJ = np.eye(v.shape[0]) - np.transpose(J).dot(J_T_pinv)                                                # Null space of the pseudo-inverse of J.T
-        NJ = np.eye(v.shape[0]) - np.transpose(J) @ J_T_pinv
+        NJ = np.eye(M.shape[0]) - np.transpose(J) @ J_T_pinv
 
         # NJ_moore =                                          # Null space of the Moore Penrose pseudo-inverse of J.T
-        
-        # These should be initial joint accelerations and, consequently, initial joint torque
-        ddq_pos_ref = 0
-        dq_pos_ref = 0
-        ddq_pos_des = kp_j * (conf.q0 - q[:,1]) - kd_j * v[:, 1]                                      # Let's choose ddq_pos_des to stabilize the initial joint configuration
-        tau_0 = M @ ddq_pos_des                                                                     # M*ddq_pos_des
 
-        # Error definitions
+        # These should be initial joint accelerations and, consequently, initial joint torque
+        ddq_pos_des = kp_j * (conf.q0 - q[:,i]) - kd_j * v[:, i]                                      # Let's choose ddq_pos_des to stabilize the initial joint configuration
+        tau_0 = M @ ddq_pos_des # + h                                                                   # M*ddq_pos_des
+        tau_01 = M @ ddq_pos_des + h                                                                   # M*ddq_pos_des
+
+        # error definition
         e = x_ref[:,i] - x[:,i]
         de = dx_ref[:,i] - dx[:,i]
+
 
         # define the control laws here
         if(test['controller']=='IC_O_simpl'):
@@ -194,25 +193,25 @@ for (test_id, test) in  enumerate(tests):
 
         elif(test['controller']=='IC_O_simpl_post'):
             tau[:,i] = h + np.transpose(J) @ (K @ e + B @ de) + NJ @ tau_0
-
+        
         elif(test['controller']=='IC_O'):
             tau[:,i] = np.transpose(J) @ (K @ e + B @ de + mu)
 
-        '''
         elif(test['controller']=='IC_O_post'):                                                                 
-            tau[:,i] = 
+            tau[:,i] = np.transpose(J) @ (K @ e + B @ de + mu) + NJ @ tau_01
 
+        '''
         if(test['controller']=='OSC'):      # Operational Space Control
-            tau[:,i] = 
+            a = 0
+            #tau[:,i] = 
 
         elif(test['controller']=='IC'):     # Impedence Control
-            tau[:,i] = 
+            tau[:,i] = h + np.transpose(J) @ (K @ e + B @ de) + NJ @ tau_0
 
         else:
             print('ERROR: Unknown controller', test['controller'])
             sys.exit(0)
-        
-        '''
+        '''        
         
         # send joint torques to simulator
         simu.simulate(tau[:,i], conf.dt, conf.ndt)
