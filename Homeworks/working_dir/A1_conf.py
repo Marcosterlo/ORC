@@ -8,7 +8,7 @@ Created on Thu Apr 18 09:47:07 2019
 import numpy as np
 
 # ====================== ALLOWED TO BE CHANGED ======================
-TRACK_TRAJ = 0
+TRACK_TRAJ = 1
 
 np.set_printoptions(precision=3, linewidth=200, suppress=True)
 LINE_WIDTH = 110
@@ -30,6 +30,7 @@ phi         = np.array([0.0, 0.5*np.pi, 0.0]).T     # phase
 tau_coulomb_max = 0
 simulation_type = 'timestepping' # either 'timestepping' or 'euler'
 
+# ====================== ALLOWED TO BE CHANGED ======================
 randomize_robot_model = 0
 model_variation = 40.0
 
