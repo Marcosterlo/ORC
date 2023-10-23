@@ -29,14 +29,14 @@ if conf.TRACK_TRAJ:
     tests += [{'controller': 'OSC', 'kp': 100,  'frequency': np.array([1.0, 1.0, 0.3]), 'friction': 2}]
     tests += [{'controller': 'IC',  'kp': 100,  'frequency': np.array([1.0, 1.0, 0.3]), 'friction': 2}]
 
-    #tests += [{'controller': 'OSC', 'kp': 100,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
-    #tests += [{'controller': 'IC',  'kp': 100,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+    tests += [{'controller': 'OSC', 'kp': 100,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+    tests += [{'controller': 'IC',  'kp': 100,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
 else:
     tests = []
 
     tests += [{'controller': 'IC_O_simpl',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),  'friction': 0}]        
     tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),'friction': 0}]    
-    #tests += [{'controller': 'IC_O',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]              
+    tests += [{'controller': 'IC_O',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]              
     tests += [{'controller': 'IC_O_post',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]         
 
     #tests += [{'controller': 'IC_O_simpl',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]        
@@ -46,7 +46,7 @@ else:
 
 
 
-plt.tight_layout(rect=[0, 0, 1, 0.95])
+#plt.tight_layout(rect=[0, 0, 1, 0.95])
 frame_id = robot.model.getFrameId(conf.frame_name)
 
 simu = RobotSimulator(conf, robot)
@@ -152,6 +152,7 @@ for (test_id, test) in  enumerate(tests):
         Lam = inv(J @ Minv @ np.transpose(J))
         #mu = Lam.dot(J.dot(Minv.dot(h)) - dJdq)
         mu = Lam @ (J @ Minv @ h - dJdq)
+        f_d = Lam @ ddx_des[:,i] + mu
 
         # User defined damping and stiffness matrix
         # We want to make the oscillation critically damped like
@@ -188,30 +189,34 @@ for (test_id, test) in  enumerate(tests):
 
 
         # define the control laws here
-        if(test['controller']=='IC_O_simpl'):
-            tau[:,i] = h + np.transpose(J) @ (K @ e + B @ de)
+        if conf.TRACK_TRAJ:
+            if(test['controller']=='OSC'):      # Operational Space Control
+                tau[:,i] = np.transpose(J) @ f_d + NJ @ tau_01 
 
-        elif(test['controller']=='IC_O_simpl_post'):
-            tau[:,i] = h + np.transpose(J) @ (K @ e + B @ de) + NJ @ tau_0
-        
-        elif(test['controller']=='IC_O'):
-            tau[:,i] = np.transpose(J) @ (K @ e + B @ de + mu)
+            elif(test['controller']=='IC'):     # Impedence Control
+                tau[:,i] = h + np.transpose(J) @ (K @ e + B @ de) + NJ @ tau_0
 
-        elif(test['controller']=='IC_O_post'):                                                                 
-            tau[:,i] = np.transpose(J) @ (K @ e + B @ de + mu) + NJ @ tau_01
-
-        '''
-        if(test['controller']=='OSC'):      # Operational Space Control
-            a = 0
-            #tau[:,i] = 
-
-        elif(test['controller']=='IC'):     # Impedence Control
-            tau[:,i] = h + np.transpose(J) @ (K @ e + B @ de) + NJ @ tau_0
+            else:
+                print('ERROR: Unknown controller', test['controller'])
+                sys.exit(0)
 
         else:
-            print('ERROR: Unknown controller', test['controller'])
-            sys.exit(0)
-        '''        
+            if(test['controller']=='IC_O_simpl'):
+                tau[:,i] = h + np.transpose(J) @ (K @ e + B @ de)
+
+            elif(test['controller']=='IC_O_simpl_post'):
+                tau[:,i] = h + np.transpose(J) @ (K @ e + B @ de) + NJ @ tau_0
+        
+            elif(test['controller']=='IC_O'):
+                tau[:,i] = np.transpose(J) @ (K @ e + B @ de + mu)
+
+            elif(test['controller']=='IC_O_post'):                                                                 
+                tau[:,i] = np.transpose(J) @ (K @ e + B @ de + mu) + NJ @ tau_01
+
+            else:
+                print('ERROR: Unknown controller', test['controller'])
+                sys.exit(0)
+
         
         # send joint torques to simulator
         simu.simulate(tau[:,i], conf.dt, conf.ndt)
