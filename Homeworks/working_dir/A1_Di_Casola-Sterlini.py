@@ -35,15 +35,13 @@ else:
     tests = []
 
     tests += [{'controller': 'IC_O_simpl',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),  'friction': 0}]        
-    '''
-    tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),'friction': 0}]    
+    #tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),'friction': 0}]    
     tests += [{'controller': 'IC_O',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]              
-    tests += [{'controller': 'IC_O_post',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]         
-    '''
+    #tests += [{'controller': 'IC_O_post',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]         
 
-    #tests += [{'controller': 'IC_O_simpl',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]        
+    tests += [{'controller': 'IC_O_simpl',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]        
     #tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]       
-    #tests += [{'controller': 'IC_O',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]               
+    tests += [{'controller': 'IC_O',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]               
     #tests += [{'controller': 'IC_O_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]       
 
 
@@ -136,7 +134,7 @@ for (test_id, test) in  enumerate(tests):
         M = robot.mass(q[:,i], False)
         h = robot.nle(q[:,i], v[:,i], False)
         g = robot.gravity(q[:,i])
-        
+
         J6 = robot.frameJacobian(q[:,i], frame_id, False)
         J = J6[:3,:]                                                                    # take first 3 rows of J6
         H = robot.framePlacement(q[:,i], frame_id, False)
@@ -156,6 +154,19 @@ for (test_id, test) in  enumerate(tests):
         Lam = inv(J @ Minv @ np.transpose(J))
         #mu = Lam.dot(J.dot(Minv.dot(h)) - dJdq)
         mu = Lam @ J @ Minv @ h - dJdq
+
+        # User defined damping and stiffness matrix
+        # We want to make the oscillation critically damped like
+        # damping_ratio = c/2*sqrt(k*m)
+        k = 100
+        m1 = Lam[0, 0]
+        m2 = Lam[1, 1]
+        m3 = Lam[2, 2]
+        B = np.empty(Lam.shape)*0
+        B[0, 0] = 2*np.sqrt(k*m1)
+        B[1, 1] = 2*np.sqrt(k*m2)
+        B[2, 2] = 2*np.sqrt(k*m3)
+        K = np.empty(Lam.shape)*0 + np.eye(Lam.shape[0])*k
         
         # Secondary task
         
@@ -170,25 +181,29 @@ for (test_id, test) in  enumerate(tests):
         # These should be initial joint accelerations and, consequently, initial joint torque
         ddq_pos_ref = 0
         dq_pos_ref = 0
-        ddq_pos_des = ddq_pos_ref + kp_j * (conf.q0 - q[:,1]) + kd_j * (dq_pos_ref - v[:, 1])                                      # Let's choose ddq_pos_des to stabilize the initial joint configuration
-        tau_0 = M*ddq_pos_des                                                                     # M*ddq_pos_des
+        ddq_pos_des = kp_j * (conf.q0 - q[:,1]) - kd_j * v[:, 1]                                      # Let's choose ddq_pos_des to stabilize the initial joint configuration
+        tau_0 = M @ ddq_pos_des                                                                     # M*ddq_pos_des
+
+        # Error definitions
+        e = x_ref[:,i] - x[:,i]
+        de = dx_ref[:,i] - dx[:,i]
 
         # define the control laws here
         if(test['controller']=='IC_O_simpl'):
-            tau[:,i] = np.transpose(J) @ mu
-        
-        '''
+            tau[:,i] = h + np.transpose(J) @ (K @ e + B @ de)
+
         elif(test['controller']=='IC_O_simpl_post'):
-            tau[:,i] = 
+            tau[:,i] = h + np.transpose(J) @ (K @ e + B @ de) + NJ @ tau_0
 
         elif(test['controller']=='IC_O'):
-            tau[:,i] = 
+            tau[:,i] = np.transpose(J) @ (K @ e + B @ de + mu)
 
+        '''
         elif(test['controller']=='IC_O_post'):                                                                 
             tau[:,i] = 
 
         if(test['controller']=='OSC'):      # Operational Space Control
-            tau[:,i] = np.transpose(J) @ Lam @ ddx_des[:,i] + h
+            tau[:,i] = 
 
         elif(test['controller']=='IC'):     # Impedence Control
             tau[:,i] = 
