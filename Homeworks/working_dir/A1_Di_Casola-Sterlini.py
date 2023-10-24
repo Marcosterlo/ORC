@@ -15,10 +15,10 @@ print("".center(conf.LINE_WIDTH,'#'))
 print(" Manipulator: Impedence Control vs. Operational Space Control vs. Inverse Kinematics + Inverse Dynamics ".center(conf.LINE_WIDTH, '#'))
 print("".center(conf.LINE_WIDTH,'#'), '\n')
 
-PLOT_TORQUES = 0
+PLOT_TORQUES = 1
 PLOT_EE_POS = 1
-PLOT_EE_VEL = 0
-PLOT_EE_ACC = 0
+PLOT_EE_VEL = 1
+PLOT_EE_ACC = 1
 
 r = loadUR()
 robot = RobotWrapper(r.model, r.collision_model, r.visual_model)
@@ -26,11 +26,11 @@ robot = RobotWrapper(r.model, r.collision_model, r.visual_model)
 if conf.TRACK_TRAJ:
     tests = []
     
-    tests += [{'controller': 'OSC', 'kp': 100,  'frequency': np.array([1.0, 1.0, 0.3]), 'friction': 2}]
-    tests += [{'controller': 'IC',  'kp': 100,  'frequency': np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+    tests += [{'controller': 'OSC', 'kp': 850,  'frequency': np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+    tests += [{'controller': 'IC',  'kp': 3,  'frequency': np.array([1.0, 1.0, 0.3]), 'friction': 2}]
 
-    tests += [{'controller': 'OSC', 'kp': 100,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
-    tests += [{'controller': 'IC',  'kp': 100,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+    tests += [{'controller': 'OSC', 'kp': 850,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+    tests += [{'controller': 'IC',  'kp': 3,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
 else:
     tests = []
 
@@ -196,7 +196,7 @@ for (test_id, test) in  enumerate(tests):
                 tau[:,i] = np.transpose(J) @ f_d + NJ @ tau_01
 
             elif(test['controller']=='IC'):     # Impedence Control
-                e = e*3
+                e = e * kp
                 tau[:,i] = h + np.transpose(J) @ (K @ e + B @ de) + NJ @ tau_0
 
             else:
