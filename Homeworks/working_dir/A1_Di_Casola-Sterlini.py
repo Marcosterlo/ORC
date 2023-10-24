@@ -15,8 +15,8 @@ print("".center(conf.LINE_WIDTH,'#'))
 print(" Manipulator: Impedence Control vs. Operational Space Control vs. Inverse Kinematics + Inverse Dynamics ".center(conf.LINE_WIDTH, '#'))
 print("".center(conf.LINE_WIDTH,'#'), '\n')
 
-PLOT_TORQUES = 0
-PLOT_EE_POS = 1
+PLOT_TORQUES = 1
+PLOT_EE_POS = 0
 PLOT_EE_VEL = 0
 PLOT_EE_ACC = 0
 
@@ -34,14 +34,14 @@ if conf.TRACK_TRAJ:
 else:
     tests = []
 
-    tests += [{'controller': 'IC_O_simpl',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),  'friction': 0}]        
-    tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),'friction': 0}]    
-    #tests += [{'controller': 'IC_O',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]              
-    tests += [{'controller': 'IC_O_post',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]         
+    #tests += [{'controller': 'IC_O_simpl',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),  'friction': 0}]        
+    #tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),'friction': 0}]    
+    tests += [{'controller': 'IC_O',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]              
+    #tests += [{'controller': 'IC_O_post',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]         
 
     #tests += [{'controller': 'IC_O_simpl',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]        
     #tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]       
-    #tests += [{'controller': 'IC_O',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]               
+    tests += [{'controller': 'IC_O',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]               
     #tests += [{'controller': 'IC_O_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]       
 
 
@@ -148,10 +148,10 @@ for (test_id, test) in  enumerate(tests):
         ddx_des[:,i] = ddx_ref[:,i] + ddx_fb                                             # Desired acceleration
         # Operational space inertia matrix definition: Lam = (J . (M)^-1 . J^T)^-1
         Minv = inv(M)                                                                    # M^-1
-        #Lam = inv(J.dot(Minv.dot(np.transpose(J))))
-        Lam = inv(J @ Minv @ np.transpose(J))
-        #mu = Lam.dot(J.dot(Minv.dot(h)) - dJdq)
+        Lam = inv(J @ Minv @ np.transpose(J))                                              
+        # Operational space bias-forces
         mu = Lam @ (J @ Minv @ h - dJdq)
+        # Desired f value
         f_d = Lam @ ddx_des[:,i] + mu
 
         # User defined damping and stiffness matrix
@@ -166,24 +166,22 @@ for (test_id, test) in  enumerate(tests):
         B[0, 0] = ratio*2*np.sqrt(k*m1)
         B[1, 1] = ratio*2*np.sqrt(k*m2)
         B[2, 2] = ratio*2*np.sqrt(k*m3)
-        K = np.empty(Lam.shape)*0 + np.eye(Lam.shape[0])*k
+        K = np.eye(Lam.shape[0])*k
         
         # Secondary task
         
         # Pseudo inverse of the jacobian transpose: J^(T#) = (J . M^-1 . J^T)^-1 . J . M^-1
-        #J_T_pinv = Lam.dot(J.dot(Minv))
         J_T_pinv = Lam @ J @ Minv
-        #NJ = np.eye(v.shape[0]) - np.transpose(J).dot(J_T_pinv)                                                # Null space of the pseudo-inverse of J.T
-        NJ = np.eye(M.shape[0]) - np.transpose(J) @ J_T_pinv
+        NJ = np.eye(M.shape[0]) - np.transpose(J) @ J_T_pinv                                                # Null space of the pseudo-inverse of J.T
+        #J_T_pinv_moore = np.linalg.pinv(J)
+        #NJ_moore = np.eye(M.shape[0]) - np.transpose(J) @ J_T_pinv_moore                                   # Null space of the psedue inverse of Moore Penrose pseudo-inverse of J.T
 
-        # NJ_moore =                                          # Null space of the Moore Penrose pseudo-inverse of J.T
+        # Definition of tau_0
+        ddq_pos_des = kp_j * (conf.q0 - q[:,i]) - kd_j * v[:, i]                                            # Let's choose ddq_pos_des to stabilize the initial joint configuration
+        tau_0 = M @ ddq_pos_des                                                                             # M*ddq_pos_des
+        tau_01 = M @ ddq_pos_des + h                                                                        # M*ddq_pos_des
 
-        # These should be initial joint accelerations and, consequently, initial joint torque
-        ddq_pos_des = kp_j * (conf.q0 - q[:,i]) - kd_j * v[:, i]                                      # Let's choose ddq_pos_des to stabilize the initial joint configuration
-        tau_0 = M @ ddq_pos_des # + h                                                                   # M*ddq_pos_des
-        tau_01 = M @ ddq_pos_des + h                                                                   # M*ddq_pos_des
-
-        # error definition
+        # error definitions
         e = x_ref[:,i] - x[:,i]
         de = dx_ref[:,i] - dx[:,i]
 
@@ -191,7 +189,7 @@ for (test_id, test) in  enumerate(tests):
         # define the control laws here
         if conf.TRACK_TRAJ:
             if(test['controller']=='OSC'):      # Operational Space Control
-                tau[:,i] = np.transpose(J) @ f_d + NJ @ tau_01 
+                tau[:,i] = np.transpose(J) @ f_d + NJ @ tau_0 
 
             elif(test['controller']=='IC'):     # Impedence Control
                 tau[:,i] = h + np.transpose(J) @ (K @ e + B @ de) + NJ @ tau_0
@@ -221,6 +219,14 @@ for (test_id, test) in  enumerate(tests):
         # send joint torques to simulator
         simu.simulate(tau[:,i], conf.dt, conf.ndt)
         tau_c[:,i] = simu.tau_c
+
+        # Print of torque to demonstrate friction effect
+        '''
+        print(tau[:,i] - tau_c[:,i] - h)
+        print(e)
+        print("")
+        '''
+
         ddx[:,i] = J.dot(simu.dv) + dJdq
         t += conf.dt
             
