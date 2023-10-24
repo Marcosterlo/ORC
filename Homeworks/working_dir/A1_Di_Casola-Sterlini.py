@@ -15,7 +15,7 @@ print("".center(conf.LINE_WIDTH,'#'))
 print(" Manipulator: Impedence Control vs. Operational Space Control vs. Inverse Kinematics + Inverse Dynamics ".center(conf.LINE_WIDTH, '#'))
 print("".center(conf.LINE_WIDTH,'#'), '\n')
 
-PLOT_TORQUES = 1
+PLOT_TORQUES = 0
 PLOT_EE_POS = 0
 PLOT_EE_VEL = 0
 PLOT_EE_ACC = 0
@@ -36,12 +36,12 @@ else:
 
     #tests += [{'controller': 'IC_O_simpl',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),  'friction': 0}]        
     #tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),'friction': 0}]    
-    tests += [{'controller': 'IC_O',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]              
+    #tests += [{'controller': 'IC_O',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]              
     #tests += [{'controller': 'IC_O_post',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]         
 
     #tests += [{'controller': 'IC_O_simpl',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]        
-    #tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]       
-    tests += [{'controller': 'IC_O',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]               
+    tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 50}]       
+    #tests += [{'controller': 'IC_O',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]               
     #tests += [{'controller': 'IC_O_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]       
 
 
@@ -90,9 +90,11 @@ for (test_id, test) in  enumerate(tests):
     N = int(conf.T_SIMULATION/conf.dt)          # number of time steps
     tau     = np.empty((robot.na, N))*nan       # joint torques
     tau_c   = np.empty((robot.na, N))*nan       # joint Coulomb torques
+    h_plot  = np.empty((robot.na, N))*nan       # joint Coulomb torques
     q       = np.empty((robot.nq, N+1))*nan     # joint angles
     v       = np.empty((robot.nv, N+1))*nan     # joint velocities
     dv      = np.empty((robot.nv, N+1))*nan     # joint accelerations
+    e_plot  = np.empty((nx,  N))*nan            # end-effector position
     x       = np.empty((nx,  N))*nan            # end-effector position
     dx      = np.empty((ndx, N))*nan            # end-effector velocity
     ddx     = np.empty((ndx, N))*nan            # end effector acceleration
@@ -131,6 +133,7 @@ for (test_id, test) in  enumerate(tests):
         robot.computeAllTerms(q[:,i], v[:,i])
         M = robot.mass(q[:,i], False)
         h = robot.nle(q[:,i], v[:,i], False)
+        h_plot[:, i] = h
         g = robot.gravity(q[:,i])
         
         J6 = robot.frameJacobian(q[:,i], frame_id, False)
@@ -183,6 +186,7 @@ for (test_id, test) in  enumerate(tests):
 
         # error definitions
         e = x_ref[:,i] - x[:,i]
+        e_plot[:, i] = e
         de = dx_ref[:,i] - dx[:,i]
 
 
@@ -310,6 +314,28 @@ for (test_id, test) in  enumerate(tests):
         leg = ax[0].legend()
         leg.get_frame().set_alpha(0.5)
         f.suptitle(description,y=1)
+
+'''
+# FRICTION TORQUE EXAMPLE
+fig, ax = plt.subplots()
+ax.plot(tt, tau[1, :], label=r'Control $\tau$')
+ax.plot(tt, tau_c[1, :], label=r'Friction $\tau$')
+ax.plot(tt, -h_plot[1, :], label=r'Non lin. torque')
+ax.set_xlabel('Time [s]')
+ax.set_ylabel('Torque [Nm]')
+leg = ax.legend()
+leg.get_frame().set_alpha(0.5)
+
+fig, ax = plt.subplots()
+ax.plot(tt, e_plot[0, :]*1e3, label="x error")
+ax.plot(tt, e_plot[1, :]*1e3, label="y error")
+ax.plot(tt, e_plot[2, :]*1e3, label="z error")
+ax.set_xlabel('Time [s]')
+ax.set_ylabel('Error position [mm]')
+leg = ax.legend()
+leg.get_frame().set_alpha(0.5)
+'''
+
 
 (f, ax) = plut.create_empty_figure()
 if conf.TRACK_TRAJ:
