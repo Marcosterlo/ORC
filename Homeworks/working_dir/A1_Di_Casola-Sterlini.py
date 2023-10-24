@@ -189,7 +189,7 @@ for (test_id, test) in  enumerate(tests):
         # define the control laws here
         if conf.TRACK_TRAJ:
             if(test['controller']=='OSC'):      # Operational Space Control
-                tau[:,i] = np.transpose(J) @ f_d + NJ @ tau_0 
+                tau[:,i] = np.transpose(J) @ f_d + NJ @ tau_01
 
             elif(test['controller']=='IC'):     # Impedence Control
                 tau[:,i] = h + np.transpose(J) @ (K @ e + B @ de) + NJ @ tau_0

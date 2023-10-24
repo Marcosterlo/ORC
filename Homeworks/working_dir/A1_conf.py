@@ -8,7 +8,7 @@ Created on Thu Apr 18 09:47:07 2019
 import numpy as np
 
 # ====================== ALLOWED TO BE CHANGED ======================
-TRACK_TRAJ = 0
+TRACK_TRAJ = 1
 
 np.set_printoptions(precision=3, linewidth=200, suppress=True)
 LINE_WIDTH = 110

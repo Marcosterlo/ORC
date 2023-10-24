@@ -1,0 +1,47 @@
+\documentclass[12pt]{article}
+\usepackage[fleqn]{amsmath}
+\usepackage{parskip}
+\usepackage[a4paper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
+
+\setlength{\parindent}{0pt}
+
+\begin{document}
+
+\date{}
+\author{Alessio Di Casola (mat. 239490), Marco Sterlini (mat. 236865)}
+
+\title{Assignment 01: Comparison between different controllers}
+
+\maketitle
+
+\section{Answers}
+\subsection{Question 1}
+The different implementations of the IC controller differ for some characteristics.
+We imposed stiffness and damping matrices as diagonal with constant stiffness values and damping values dynamically computed using the simulator mass matrix imposing a unitary damping ratio. 
+
+Every controller manages to converge to the desired end effector position except for the third one (Exact version). The first one (Simplified version) manifests a continuous movements of the arm even though the end effector remains still, this because we didn't minimize the null-space of the jacobian pseudo-inverse yet.
+
+In the second (Simplified version + postural task) and fourth (Exact version + postural task) controller we don't notice any macroscopic difference from the simulations, the tracking errors are different: \dots and they converge to an equilibrium in different times: \dots
+
+When we introduced the friction we noticed that the controller couldn't manage to always make the robot reach the desired e.e. position.
+
+As a result here are the average tracking errors of the controllers:
+
+\begin{table}[h]
+    \begin{tabular}{lllll}
+    \cline{1-4}
+    \multicolumn{1}{|l|}{Simplified} & \multicolumn{1}{l|}{Simplified + postural task} & \multicolumn{1}{l|}{Exact} & \multicolumn{1}{l|}{Exact + postural task} &  \\ \cline{1-4}
+    \multicolumn{1}{|l|}{} & \multicolumn{1}{l|}{} & \multicolumn{1}{l|}{\textbf{Undefined}} & \multicolumn{1}{l|}{} &  \\ \cline{1-4}
+                           &                       &                       &                       &  \\
+                           &                       &                       &                       & 
+    \end{tabular}
+\end{table}
+
+\subsection{Question 2}
+\subsection{Question 3}
+\subsection{Question 4}
+\subsection{Question 5}
+
+\section{Plots}
+
+\end{document}
