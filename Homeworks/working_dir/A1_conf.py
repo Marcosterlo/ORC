@@ -31,7 +31,7 @@ tau_coulomb_max = 0
 simulation_type = 'timestepping'                    # either 'timestepping' or 'euler'
 
 # ====================== ALLOWED TO BE CHANGED ======================
-randomize_robot_model = 0
+randomize_robot_model = 1
 model_variation = 40.0
 
 # ====================== ALLOWED TO BE CHANGED ======================

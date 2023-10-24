@@ -26,11 +26,14 @@ robot = RobotWrapper(r.model, r.collision_model, r.visual_model)
 if conf.TRACK_TRAJ:
     tests = []
     
+    # Choose kp in IC controllers as 2 to have a conservative approach to randomness
     tests += [{'controller': 'OSC', 'kp': 850,  'frequency': np.array([1.0, 1.0, 0.3]), 'friction': 2}]
-    tests += [{'controller': 'IC',  'kp': 3,  'frequency': np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+    tests += [{'controller': 'IC',  'kp': 2,  'frequency': np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+    #tests += [{'controller': 'IC',  'kp': 3,  'frequency': np.array([1.0, 1.0, 0.3]), 'friction': 2}]
 
     tests += [{'controller': 'OSC', 'kp': 850,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
-    tests += [{'controller': 'IC',  'kp': 3,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+    tests += [{'controller': 'IC',  'kp': 2,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+    #tests += [{'controller': 'IC',  'kp': 3,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
 else:
     tests = []
 
@@ -196,6 +199,7 @@ for (test_id, test) in  enumerate(tests):
                 tau[:,i] = np.transpose(J) @ f_d + NJ @ tau_01
 
             elif(test['controller']=='IC'):     # Impedence Control
+                # Additional tune to improve performance even though the use of kp notation is not correct since it's not a PID
                 e = e * kp
                 tau[:,i] = h + np.transpose(J) @ (K @ e + B @ de) + NJ @ tau_0
 
