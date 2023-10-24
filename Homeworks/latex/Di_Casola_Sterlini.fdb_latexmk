@@ -1,7 +1,7 @@
 # Fdb version 3
-["pdflatex"] 1698156583 "/home/marco/Desktop/ORC/Homeworks/latex/Di_Casola_Sterlini.tex" "Di_Casola_Sterlini.pdf" "Di_Casola_Sterlini" 1698156583
+["pdflatex"] 1698157210 "/home/marco/Desktop/ORC/Homeworks/latex/Di_Casola_Sterlini.tex" "Di_Casola_Sterlini.pdf" "Di_Casola_Sterlini" 1698157211
   "/etc/texmf/web2c/texmf.cnf" 1683202507 475 c0e671620eb5563b2130f56340a5fde8 ""
-  "/home/marco/Desktop/ORC/Homeworks/latex/Di_Casola_Sterlini.tex" 1698156583 3720 8aadfa035c1226582d4829463a5529a9 ""
+  "/home/marco/Desktop/ORC/Homeworks/latex/Di_Casola_Sterlini.tex" 1698157210 4021 aae939941c55712c16765a4fb9bdac9e ""
   "/usr/share/texlive/texmf-dist/fonts/map/fontname/texfonts.map" 1577235249 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1246382020 1004 54797486969f23fa377b128694d548df ""
   "/usr/share/texlive/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1246382020 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
@@ -46,8 +46,8 @@
   "/usr/share/texmf/web2c/texmf.cnf" 1644012257 39432 7155514e09a3d69036fac785183a21c2 ""
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1683202521 4379155 98693266ff65f58d9f98aff394de12d2 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1685549868 2802058 83d1ab6b47ab55d66f8e96235a65c52f ""
-  "Di_Casola_Sterlini.aux" 1698156583 735 dc3b253ea7e2b6e5974aef181f58b8b7 "pdflatex"
-  "Di_Casola_Sterlini.tex" 1698156583 3720 8aadfa035c1226582d4829463a5529a9 ""
+  "Di_Casola_Sterlini.aux" 1698157211 735 dc3b253ea7e2b6e5974aef181f58b8b7 "pdflatex"
+  "Di_Casola_Sterlini.tex" 1698157210 4021 aae939941c55712c16765a4fb9bdac9e ""
   (generated)
   "Di_Casola_Sterlini.aux"
   "Di_Casola_Sterlini.log"

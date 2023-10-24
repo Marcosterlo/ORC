@@ -196,6 +196,7 @@ for (test_id, test) in  enumerate(tests):
                 tau[:,i] = np.transpose(J) @ f_d + NJ @ tau_01
 
             elif(test['controller']=='IC'):     # Impedence Control
+                e = e*3
                 tau[:,i] = h + np.transpose(J) @ (K @ e + B @ de) + NJ @ tau_0
 
             else:
@@ -230,14 +231,17 @@ for (test_id, test) in  enumerate(tests):
         print(e)
         print("")
         '''
+        
+        # Print of terms to justify the 3rd controller divergence
+        '''
         print("h:")
         print(h)
         print("J^T . mu:")
         print(np.transpose(J) @ mu)
         print("dJdq:")
         print(dJdq)
-
         print("")
+        '''
 
         ddx[:,i] = J.dot(simu.dv) + dJdq
         t += conf.dt
