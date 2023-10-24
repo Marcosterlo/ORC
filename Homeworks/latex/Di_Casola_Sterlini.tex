@@ -1,4 +1,4 @@
-\documentclass[12pt]{article}
+\documentclass[10pt]{article}
 \usepackage[fleqn]{amsmath}
 \usepackage{parskip}
 \usepackage[a4paper,top=2cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
@@ -23,9 +23,9 @@ Every controller manages to converge to the desired end effector position except
 
 In the second (Simplified version + postural task) and fourth (Exact version + postural task) controller we don't notice any macroscopic difference from the simulations, the tracking errors are different: \dots and they converge to an equilibrium in different times: \dots
 
-When we introduced the friction we noticed that the controller couldn't manage to always make the robot reach the desired e.e. position.
+When we introduced the friction we noticed that the controller couldn't manage to always make the robot reach the desired e.e. position. This can be physically explained because the control torque is proportional (but not only) to the error position, once it becomes small enough the resulting control torque becomes equal and opposite to the sum of the friction torque and gravity compensation resulting in a torque equilibrium (fig. \ref{equilibrium}) without ever reaching the desired position (fig. \ref{friction_explained}).
 
-As a result here are the average tracking errors of the controllers:
+Here are the average tracking errors of the controllers:
 
 \begin{table}[h]
     \begin{tabular}{lllll}
@@ -38,9 +38,15 @@ As a result here are the average tracking errors of the controllers:
 \end{table}
 
 \subsection{Question 2}
+
+In the exact controller we see that the torques diverge and hence we can't finish the simulation, in the friction case scenario instead it manages to converge. This is explained by the behavior of the non controlled joint space: in the first case it diverges with increasing velocities until it reaches a singular configuration and simulation ends, in the second case the uncontrolled space is mechanically stable with the addition of friction hence controlling only with the main task results in a converging control overall (fig. \ref{exact_diverging}).
+
+The other controls manage to stabilize the desired position because they are imbued with the postural task, the first case instead, even though it doesn't have the postural task, doesn't diverge because the non linear contributes (term h representing gravity and Coriolis contributions) is simply added to the control torque and not multiplied by the inverse of the jacobian.
 \subsection{Question 3}
 \subsection{Question 4}
 \subsection{Question 5}
+
+\pagebreak
 
 \section{Plots}
 
