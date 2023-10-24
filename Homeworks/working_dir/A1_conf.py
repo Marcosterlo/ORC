@@ -8,13 +8,13 @@ Created on Thu Apr 18 09:47:07 2019
 import numpy as np
 
 # ====================== ALLOWED TO BE CHANGED ======================
-TRACK_TRAJ = 1
+TRACK_TRAJ = 0
 
 np.set_printoptions(precision=3, linewidth=200, suppress=True)
 LINE_WIDTH = 110
 
 q0 = np.array([ 0. , -1.0,  0.7,  0. ,  0. ,  0. ])  # initial configuration
-T_SIMULATION = 10                                    # simulation time
+T_SIMULATION = 3                                  # simulation time
 dt = 0.01                                            # controller time step
 ndt = 1                                              # number of integration steps for each control loop
 

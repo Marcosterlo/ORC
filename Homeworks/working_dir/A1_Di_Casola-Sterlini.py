@@ -15,10 +15,10 @@ print("".center(conf.LINE_WIDTH,'#'))
 print(" Manipulator: Impedence Control vs. Operational Space Control vs. Inverse Kinematics + Inverse Dynamics ".center(conf.LINE_WIDTH, '#'))
 print("".center(conf.LINE_WIDTH,'#'), '\n')
 
-PLOT_TORQUES = 1
+PLOT_TORQUES = 0
 PLOT_EE_POS = 1
-PLOT_EE_VEL = 1
-PLOT_EE_ACC = 1
+PLOT_EE_VEL = 0
+PLOT_EE_ACC = 0
 
 r = loadUR()
 robot = RobotWrapper(r.model, r.collision_model, r.visual_model)
@@ -34,13 +34,13 @@ if conf.TRACK_TRAJ:
 else:
     tests = []
 
-    #tests += [{'controller': 'IC_O_simpl',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),  'friction': 0}]        
+    tests += [{'controller': 'IC_O_simpl',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),  'friction': 0}]        
     #tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),'friction': 0}]    
     #tests += [{'controller': 'IC_O',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]              
     #tests += [{'controller': 'IC_O_post',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]         
 
     #tests += [{'controller': 'IC_O_simpl',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]        
-    tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 50}]       
+    #tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 50}]       
     #tests += [{'controller': 'IC_O',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]               
     #tests += [{'controller': 'IC_O_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]       
 
@@ -230,6 +230,14 @@ for (test_id, test) in  enumerate(tests):
         print(e)
         print("")
         '''
+        print("h:")
+        print(h)
+        print("J^T . mu:")
+        print(np.transpose(J) @ mu)
+        print("dJdq:")
+        print(dJdq)
+
+        print("")
 
         ddx[:,i] = J.dot(simu.dv) + dJdq
         t += conf.dt

@@ -39,9 +39,9 @@ Here are the average tracking errors of the controllers:
 
 \subsection{Question 2}
 
-In the exact controller we see that the torques diverge and hence we can't finish the simulation, in the friction case scenario instead it manages to converge. This is explained by the behavior of the non controlled joint space: in the first case it diverges with increasing velocities until it reaches a singular configuration and simulation ends, in the second case the uncontrolled space is mechanically stable with the addition of friction hence controlling only with the main task results in a converging control overall (fig. \ref{exact_diverging}).
+In the exact controller we see that the torques diverge and hence we can't finish the simulation, in the friction case scenario instead it manages to converge. This is explained by the behavior of the non controlled joint space: in the first case it diverges with increasing velocities and the $\dot J \dot q$ term diverges leading to the end of simulation, in the second case the uncontrolled space is mechanically stable due to the addition of friction. Hence we manage to reach an overall converging control law only by controlling the main task (fig. \ref{exact_diverging}).
 
-The other controls manage to stabilize the desired position because they are imbued with the postural task, the first case instead, even though it doesn't have the postural task, doesn't diverge because the non linear contributes (term h representing gravity and Coriolis contributions) is simply added to the control torque and not multiplied by the inverse of the jacobian.
+The other controls manage to stabilize the desired position because they are imbued with the postural task, the first case instead, even though it doesn't have the postural task, doesn't diverge because we made the assumption that joint velocities won't be high, doing so we don't multiply the term $\dot J \dot q$ by $J^T$ and we don't encounter the numerical divergence (fig. \ref{comparison}) Non linear effects are portrayed by $h$ which is simply added to the control law remaining reasonably bounded.
 \subsection{Question 3}
 \subsection{Question 4}
 \subsection{Question 5}
