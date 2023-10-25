@@ -13,6 +13,7 @@ sudo docker commit ubuntu_bash andreadelprete/orc23:marco
 
 Per aggiungere vscode e tutto il resto runna questo blocco di codice, installa tutto per la prima volta. Da fare ogni volta che Del prete aggiorna la sua immagine docker:
 
+Copia la cartella orc in shared
 
 '''
 sudo apt update && sudo apt-get install wget gpg &&
@@ -33,7 +34,7 @@ Da aggiungere a /home/student/.bashrc: l'ultima cosa in particolare fa in modo c
 set -o vi
 
 #Da aggiungere alla fine del file
-cd ord && git pull && cd
+cd shared/orc && git pull && cd
 '''
 
 Estensioni vscode che uso io:
