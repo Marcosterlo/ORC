@@ -15,10 +15,10 @@ print("".center(conf.LINE_WIDTH,'#'))
 print(" Manipulator: Impedence Control vs. Operational Space Control vs. Inverse Kinematics + Inverse Dynamics ".center(conf.LINE_WIDTH, '#'))
 print("".center(conf.LINE_WIDTH,'#'), '\n')
 
-PLOT_TORQUES = 1
-PLOT_EE_POS = 1
-PLOT_EE_VEL = 1
-PLOT_EE_ACC = 1
+PLOT_TORQUES = 0
+PLOT_EE_POS = 0
+PLOT_EE_VEL = 0
+PLOT_EE_ACC = 0
 
 r = loadUR()
 robot = RobotWrapper(r.model, r.collision_model, r.visual_model)
@@ -26,26 +26,29 @@ robot = RobotWrapper(r.model, r.collision_model, r.visual_model)
 if conf.TRACK_TRAJ:
     tests = []
     
-    # Choose kp in IC controllers as 2 to have a conservative approach to randomness
-    tests += [{'controller': 'OSC', 'kp': 850,  'frequency': np.array([1.0, 1.0, 0.3]), 'friction': 2}]
-    tests += [{'controller': 'IC',  'kp': 2,  'frequency': np.array([1.0, 1.0, 0.3]), 'friction': 2}]
-    #tests += [{'controller': 'IC',  'kp': 3,  'frequency': np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+    if conf.randomize_robot_model:
+        tests += [{'controller': 'OSC', 'kp': 500,  'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
+        tests += [{'controller': 'IC',  'kp': 1.5,    'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
+        tests += [{'controller': 'OSC', 'kp': 500,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+        tests += [{'controller': 'IC',  'kp': 1.5,    'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+    else:
+        tests += [{'controller': 'OSC', 'kp': 850,  'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
+        tests += [{'controller': 'IC',  'kp': 3,    'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
+        tests += [{'controller': 'OSC', 'kp': 850,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+        tests += [{'controller': 'IC',  'kp': 3,    'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
 
-    tests += [{'controller': 'OSC', 'kp': 850,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
-    tests += [{'controller': 'IC',  'kp': 2,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
-    #tests += [{'controller': 'IC',  'kp': 3,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
 else:
     tests = []
 
     tests += [{'controller': 'IC_O_simpl',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),  'friction': 0}]        
-    #tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),'friction': 0}]    
+    tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),'friction': 0}]    
     #tests += [{'controller': 'IC_O',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]              
-    #tests += [{'controller': 'IC_O_post',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]         
+    tests += [{'controller': 'IC_O_post',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]         
 
-    #tests += [{'controller': 'IC_O_simpl',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]        
-    #tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 50}]       
-    #tests += [{'controller': 'IC_O',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]               
-    #tests += [{'controller': 'IC_O_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]       
+    tests += [{'controller': 'IC_O_simpl',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]        
+    tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 50}]       
+    tests += [{'controller': 'IC_O',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]               
+    tests += [{'controller': 'IC_O_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]       
 
 
 
@@ -163,7 +166,10 @@ for (test_id, test) in  enumerate(tests):
         # User defined damping and stiffness matrix
         # We want to make the oscillation critically damped like
         # damping_ratio = c/2*sqrt(k*m)
+        # Conservative choice if random_robot_model
         k = 1e4
+        if conf.randomize_robot_model:
+            k = k*0.8
         ratio = 1
         m1 = Lam[0, 0]
         m2 = Lam[1, 1]
