@@ -28,3 +28,17 @@ sudo apt update &&
 sudo apt install code &&
 sudo apt install terminator ranger vim
 '''
+
+Da aggiungere a .bashrc:
+
+'''
+set -o vi
+
+
+cd ord && git pull && cd
+'''
+
+Estensioni vscode:
+-vim
+-pdf viewer
+-python
