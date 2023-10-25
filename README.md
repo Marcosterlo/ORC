@@ -40,3 +40,5 @@ Estensioni vscode che uso io:
 -vim
 -pdf viewer
 -python
+
+Shortcut per il terminale da vscode: workbench.action.terminal.toggleTerminal -> ALT + s
