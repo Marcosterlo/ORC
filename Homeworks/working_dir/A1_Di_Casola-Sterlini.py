@@ -15,10 +15,10 @@ print("".center(conf.LINE_WIDTH,'#'))
 print(" Manipulator: Impedence Control vs. Operational Space Control vs. Inverse Kinematics + Inverse Dynamics ".center(conf.LINE_WIDTH, '#'))
 print("".center(conf.LINE_WIDTH,'#'), '\n')
 
-PLOT_TORQUES = 0
+PLOT_TORQUES = 1
 PLOT_EE_POS = 0
-PLOT_EE_VEL = 0
-PLOT_EE_ACC = 0
+PLOT_EE_VEL = 1
+PLOT_EE_ACC = 1
 
 r = loadUR()
 robot = RobotWrapper(r.model, r.collision_model, r.visual_model)
@@ -27,15 +27,15 @@ if conf.TRACK_TRAJ:
     tests = []
     
     if conf.randomize_robot_model:
-        tests += [{'controller': 'OSC', 'kp': 500,  'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
-        tests += [{'controller': 'IC',  'kp': 1.5,    'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
-        tests += [{'controller': 'OSC', 'kp': 500,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
-        tests += [{'controller': 'IC',  'kp': 1.5,    'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+        tests += [{'controller': 'OSC', 'kp': 100,  'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
+        #tests += [{'controller': 'IC',  'kp': 1.5,    'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
+        tests += [{'controller': 'OSC', 'kp': 100,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+        #tests += [{'controller': 'IC',  'kp': 1.5,    'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
     else:
-        tests += [{'controller': 'OSC', 'kp': 850,  'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
-        tests += [{'controller': 'IC',  'kp': 3,    'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
-        tests += [{'controller': 'OSC', 'kp': 850,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
-        tests += [{'controller': 'IC',  'kp': 3,    'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+        tests += [{'controller': 'OSC', 'kp': 100,  'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
+        tests += [{'controller': 'IC',  'kp': 100,    'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
+        tests += [{'controller': 'OSC', 'kp': 100,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+        tests += [{'controller': 'IC',  'kp': 100,    'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
 
 else:
     tests = []
@@ -112,6 +112,8 @@ for (test_id, test) in  enumerate(tests):
     t = 0.0
     PRINT_N = int(conf.PRINT_T/conf.dt)
     
+    e_tot = 0
+    
     # ============== FOR LOOP FOR EVERY SIMULATION STEP ===============
     for i in range(0, N):
         time_start = time.time()
@@ -151,9 +153,16 @@ for (test_id, test) in  enumerate(tests):
         #    dx[:,i] = J.dot(v[:,i])
         dJdq = robot.frameAcceleration(q[:,i], v[:,i], None, frame_id, False).linear
         
+        # error definitions
+        e = x_ref[:,i] - x[:,i]
+        e_tot = e_tot + e
+        e_plot[:, i] = e
+        de = dx_ref[:,i] - dx[:,i]
+        ki = 15
        
         # implement the components needed for your control laws here
-        ddx_fb = kp * (x_ref[:,i] - x[:,i]) + kd * (dx_ref[:,i] - dx[:,i])               # Feedback acceleration
+        #ddx_fb = kp * (x_ref[:,i] - x[:,i]) + kd * (dx_ref[:,i] - dx[:,i]) + ki * e_tot               # Feedback acceleration
+        ddx_fb = kp * (x_ref[:,i] - x[:,i]) + kd * (dx_ref[:,i] - dx[:,i])                          # Feedback acceleration
         ddx_des[:,i] = ddx_ref[:,i] + ddx_fb                                             # Desired acceleration
         # Operational space inertia matrix definition: Lam = (J . (M)^-1 . J^T)^-1
         Minv = inv(M)                                                                    # M^-1
@@ -166,8 +175,12 @@ for (test_id, test) in  enumerate(tests):
         # User defined damping and stiffness matrix
         # We want to make the oscillation critically damped like
         # damping_ratio = c/2*sqrt(k*m)
-        # Conservative choice if random_robot_model
-        k = 1e4
+        
+        # Initial k value
+        k = 1e3
+        # Improved k value
+        #k = 1e4
+
         if conf.randomize_robot_model:
             k = k*0.8
         ratio = 1
@@ -193,20 +206,12 @@ for (test_id, test) in  enumerate(tests):
         tau_0 = M @ ddq_pos_des                                                                             # M*ddq_pos_des
         tau_01 = M @ ddq_pos_des + h                                                                        # M*ddq_pos_des
 
-        # error definitions
-        e = x_ref[:,i] - x[:,i]
-        e_plot[:, i] = e
-        de = dx_ref[:,i] - dx[:,i]
-
-
         # define the control laws here
         if conf.TRACK_TRAJ:
             if(test['controller']=='OSC'):      # Operational Space Control
                 tau[:,i] = np.transpose(J) @ f_d + NJ @ tau_01
 
             elif(test['controller']=='IC'):     # Impedence Control
-                # Additional tune to improve performance even though the use of kp notation is not correct since it's not a PID
-                e = e * kp
                 tau[:,i] = h + np.transpose(J) @ (K @ e + B @ de) + NJ @ tau_0
 
             else:
