@@ -14,7 +14,7 @@ np.set_printoptions(precision=3, linewidth=200, suppress=True)
 LINE_WIDTH = 110
 
 q0 = np.array([ 0. , -1.0,  0.7,  0. ,  0. ,  0. ])  # initial configuration
-T_SIMULATION = 10                                    # simulation time
+T_SIMULATION = 10                                   # simulation time
 dt = 0.01                                            # controller time step
 ndt = 1                                              # number of integration steps for each control loop
 
@@ -31,7 +31,7 @@ tau_coulomb_max = 0
 simulation_type = 'timestepping'                    # either 'timestepping' or 'euler'
 
 # ====================== ALLOWED TO BE CHANGED ======================
-randomize_robot_model = 0
+randomize_robot_model = 1
 model_variation = 40.0
 
 # ====================== ALLOWED TO BE CHANGED ======================

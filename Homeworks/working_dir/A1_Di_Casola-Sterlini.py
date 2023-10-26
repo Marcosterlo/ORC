@@ -16,7 +16,7 @@ print(" Manipulator: Impedence Control vs. Operational Space Control vs. Inverse
 print("".center(conf.LINE_WIDTH,'#'), '\n')
 
 PLOT_TORQUES = 1
-PLOT_EE_POS = 0
+PLOT_EE_POS = 1
 PLOT_EE_VEL = 1
 PLOT_EE_ACC = 1
 
@@ -26,24 +26,18 @@ robot = RobotWrapper(r.model, r.collision_model, r.visual_model)
 if conf.TRACK_TRAJ:
     tests = []
     
-    if conf.randomize_robot_model:
-        tests += [{'controller': 'OSC', 'kp': 100,  'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
-        #tests += [{'controller': 'IC',  'kp': 1.5,    'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
-        tests += [{'controller': 'OSC', 'kp': 100,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
-        #tests += [{'controller': 'IC',  'kp': 1.5,    'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
-    else:
-        tests += [{'controller': 'OSC', 'kp': 100,  'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
-        tests += [{'controller': 'IC',  'kp': 100,    'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
-        tests += [{'controller': 'OSC', 'kp': 100,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
-        tests += [{'controller': 'IC',  'kp': 100,    'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+    tests += [{'controller': 'OSC', 'kp': 500,  'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
+    tests += [{'controller': 'IC',  'kp': 100,    'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
+    tests += [{'controller': 'OSC', 'kp': 500,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+    tests += [{'controller': 'IC',  'kp': 100,    'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
 
 else:
     tests = []
 
-    tests += [{'controller': 'IC_O_simpl',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),  'friction': 0}]        
-    tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),'friction': 0}]    
+    #tests += [{'controller': 'IC_O_simpl',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),  'friction': 0}]        
+    #tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),'friction': 0}]    
     #tests += [{'controller': 'IC_O',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]              
-    tests += [{'controller': 'IC_O_post',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]         
+    #tests += [{'controller': 'IC_O_post',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]         
 
     tests += [{'controller': 'IC_O_simpl',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]        
     tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 50}]       
@@ -158,11 +152,11 @@ for (test_id, test) in  enumerate(tests):
         e_tot = e_tot + e
         e_plot[:, i] = e
         de = dx_ref[:,i] - dx[:,i]
-        ki = 15
+        ki = 10
        
         # implement the components needed for your control laws here
-        #ddx_fb = kp * (x_ref[:,i] - x[:,i]) + kd * (dx_ref[:,i] - dx[:,i]) + ki * e_tot               # Feedback acceleration
-        ddx_fb = kp * (x_ref[:,i] - x[:,i]) + kd * (dx_ref[:,i] - dx[:,i])                          # Feedback acceleration
+        ddx_fb = kp * (x_ref[:,i] - x[:,i]) + kd * (dx_ref[:,i] - dx[:,i]) + ki * e_tot               # Feedback acceleration + integral component
+        #ddx_fb = kp * (x_ref[:,i] - x[:,i]) + kd * (dx_ref[:,i] - dx[:,i])                          # Feedback acceleration
         ddx_des[:,i] = ddx_ref[:,i] + ddx_fb                                             # Desired acceleration
         # Operational space inertia matrix definition: Lam = (J . (M)^-1 . J^T)^-1
         Minv = inv(M)                                                                    # M^-1
@@ -177,12 +171,13 @@ for (test_id, test) in  enumerate(tests):
         # damping_ratio = c/2*sqrt(k*m)
         
         # Initial k value
-        k = 1e3
+        #k = 1e3
         # Improved k value
-        #k = 1e4
-
+        k = 1e4
+        # Conservative approach for random model 
         if conf.randomize_robot_model:
-            k = k*0.8
+            k = 0.75*k
+
         ratio = 1
         m1 = Lam[0, 0]
         m2 = Lam[1, 1]
