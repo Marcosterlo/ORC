@@ -18,7 +18,7 @@ import orc.utils.lab_utils as lab
 from orc.utils.viz_utils import addViewerSphere, applyViewerConfiguration
 
 from single_shooting_problem_marco import SingleShootingProblem
-import single_shooting_conf as conf
+import orc.optimal_control.single_shooting.single_shooting_conf as conf
 from orc.optimal_control.ode import ODERobot
 from my_orc.optimal_control.numerical_integration_marco import Integrator
 from my_orc.optimal_control.cost_functions_marco import OCPFinalCostState, OCPFinalCostFramePos, OCPFinalCostFrame
