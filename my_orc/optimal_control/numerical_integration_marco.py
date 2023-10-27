@@ -8,7 +8,7 @@ Test different integration schemes and their derivatives.
 """
 
 import numpy as np
-import orc.optimal_control.solutions.numerical_integration_sol_marco as sol
+import my_orc.optimal_control.solutions.numerical_integration_sol_marco as sol
 
 class Integrator:
     ''' A class implementing different numerical integrator schemes '''
