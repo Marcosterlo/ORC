@@ -8,7 +8,7 @@ Test different integration schemes and their derivatives.
 """
 
 import numpy as np
-import orc.optimal_control.solutions.numerical_integration_sol as sol
+import numerical_integration_sol as sol
 
 class Integrator:
     ''' A class implementing different numerical integrator schemes '''
@@ -22,7 +22,7 @@ class Integrator:
             - U: trajectory of control inputs, one constant value for each time step dt
             - t_init: the initial time
             - dt: the time step of the trajectory
-            - ndt: the number of inner time steps for each time step
+            - ndt: the number of inner time steps for each time step (ex: midpoint methos = 2)
             - N: the number of time steps
             - scheme: the name of the integration scheme to use
         '''
@@ -134,7 +134,7 @@ if __name__=='__main__':
     '''
     LINE_WIDTH = 60
     q0 = np.array([ 0. , -1.0,  0.7,  0. ,  0. ,  0. ])  # initial configuration
-    dt = 0.1                     # time step
+    dt = 0.1                     # time step -> large to better see integration for teaching purposes
     T = 0.5                      # time horizon
     N = int(T/dt);               # horizon steps
     PLOT_STUFF = 1
@@ -152,10 +152,12 @@ if __name__=='__main__':
     # choose the number of inner steps so that the number of function evaluations
     # is the same for every method
     integrators = []
-    integrators += [{'scheme': 'RK-4',      'ndt': 1000}]    # used as ground truth
-    integrators += [{'scheme': 'RK-1',      'ndt': 12}]
-    integrators += [{'scheme': 'RK-2',      'ndt': 6}]
+    integrators += [{'scheme': 'RK-4',      'ndt': 1000}]       # used as ground truth -> ndt means how many integration steps we use for every time step, the higher the more accurate the integration
+    integrators += [{'scheme': 'RK-1',      'ndt': 12}]         # We choose these ndt in order to have costant integration evaluation per time step: RK1 -> 1 time per time step -> 12 in total per time step
+    '''
+    integrators += [{'scheme': 'RK-2',      'ndt': 6}]          # RK2 does 2 evaluation * ndt = 6 -> 12 total evaluations per time step and so on
     integrators += [{'scheme': 'RK-3',      'ndt': 4}]
+    '''
     integrators += [{'scheme': 'RK-4',      'ndt': 3}]
     
         
