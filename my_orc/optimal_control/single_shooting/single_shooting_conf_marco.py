@@ -29,12 +29,12 @@ system = 'ur-lab'
 
 weight_final_ee_pos = 0     # final cost weight for end-effector position
 weight_final_ee_vel = 0     # final cost weight for end-effector velocity
-weight_final_q  = 1e1         # final cost weight for joint positions
-weight_final_dq = 1e1         # final cost weight for joint velocities
+weight_final_q  = 1e2         # final cost weight for joint positions
+weight_final_dq = 1e2         # final cost weight for joint velocities
 weight_dq  = 1e-1           # running cost weight for joint velocities
 weight_ddq = 1e-2           # running cost weight for joint accelerations
 weight_u   = 0              # running cost weight for joint torques
-activate_joint_bounds = 1           # joint pos/vel bounds
+activate_joint_bounds = 0           # joint pos/vel bounds
 activate_final_state_constraint = 0 # final state constraint
 
 table_collision_frames = []
