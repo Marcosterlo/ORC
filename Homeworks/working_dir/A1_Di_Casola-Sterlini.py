@@ -26,6 +26,14 @@ robot = RobotWrapper(r.model, r.collision_model, r.visual_model)
 if conf.TRACK_TRAJ:
     tests = []
     
+    '''
+    tests += [{'controller': 'OSC', 'kp': 100,  'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
+    tests += [{'controller': 'IC',  'kp': 100,    'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
+    tests += [{'controller': 'OSC', 'kp': 100,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+    tests += [{'controller': 'IC',  'kp': 100,    'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
+    '''
+
+    # Improved controllers
     tests += [{'controller': 'OSC', 'kp': 500,  'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
     tests += [{'controller': 'IC',  'kp': 100,    'frequency': np.array([1.0, 1.0, 0.3]),   'friction': 2}]
     tests += [{'controller': 'OSC', 'kp': 500,  'frequency': 3*np.array([1.0, 1.0, 0.3]), 'friction': 2}]
@@ -34,13 +42,13 @@ if conf.TRACK_TRAJ:
 else:
     tests = []
 
-    #tests += [{'controller': 'IC_O_simpl',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),  'friction': 0}]        
-    #tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),'friction': 0}]    
+    tests += [{'controller': 'IC_O_simpl',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),  'friction': 0}]        
+    tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,  'frequency': np.array([0.0, 0.0, 0.0]),'friction': 0}]    
     #tests += [{'controller': 'IC_O',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]              
-    #tests += [{'controller': 'IC_O_post',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]         
+    tests += [{'controller': 'IC_O_post',  'kp': 250, 'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 0}]         
 
     tests += [{'controller': 'IC_O_simpl',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]        
-    tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 50}]       
+    tests += [{'controller': 'IC_O_simpl_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]       
     tests += [{'controller': 'IC_O',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]               
     tests += [{'controller': 'IC_O_post',  'kp': 250,'frequency': np.array([0.0, 0.0, 0.0]), 'friction': 2}]       
 
@@ -71,7 +79,9 @@ for (test_id, test) in  enumerate(tests):
     kp = test['kp']             # proportional gain of tracking task
     kd = 2*np.sqrt(kp)          # derivative gain of tracking task
     
-    kp_j = 20.0                 # proportional gain of end effector task
+    # IMPROVED VALUE FOR POSTURAL TASK AND AVOID CHANGE IN CONFIGURATIONS
+    #kp_j = 20.0                 # proportional gain of end effector task
+    kp_j = kp/2.0              # proportional gain of end effector task
     kd_j = 2*sqrt(kp_j)         # derivative gain of end effector task
 
     freq = test['frequency']
