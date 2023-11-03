@@ -10,7 +10,7 @@ np.set_printoptions(precision=3, linewidth=200, suppress=True)
 LINE_WIDTH = 60
 
 T = 2.0                         # OCP horizon
-dt = 0.02                     # OCP time step
+dt = 0.08                     # OCP time step
 integration_scheme = 'RK-4'
 use_finite_diff = 0
 max_iter = 100
@@ -20,8 +20,8 @@ DATA_FOLDER = '../data/'
 #DATA_FILE_NAME = 'table_2_belt'
 DATA_FILE_NAME = 'home_2_table'
 
-# INITIAL_GUESS_FILE = None # use None if you don't have an initial guess
-INITIAL_GUESS_FILE = DATA_FILE_NAME
+INITIAL_GUESS_FILE = None # use None if you don't have an initial guess
+# INITIAL_GUESS_FILE = DATA_FILE_NAME
 
 # system = 'ur'
 system = 'ur-lab'
@@ -29,13 +29,13 @@ system = 'ur-lab'
 
 weight_final_ee_pos = 0     # final cost weight for end-effector position
 weight_final_ee_vel = 0     # final cost weight for end-effector velocity
-weight_final_q  = 1e2         # final cost weight for joint positions
-weight_final_dq = 1e2         # final cost weight for joint velocities
+weight_final_q  = 0e2         # final cost weight for joint positions
+weight_final_dq = 0e2        # final cost weight for joint velocities
 weight_dq  = 1e-1           # running cost weight for joint velocities
 weight_ddq = 1e-2           # running cost weight for joint accelerations
 weight_u   = 0              # running cost weight for joint torques
-activate_joint_bounds = 0           # joint pos/vel bounds
-activate_final_state_constraint = 0 # final state constraint
+activate_joint_bounds = 0          # joint pos/vel bounds
+activate_final_state_constraint = 1 # final state constraint
 
 table_collision_frames = []
 self_collision_frames = []
