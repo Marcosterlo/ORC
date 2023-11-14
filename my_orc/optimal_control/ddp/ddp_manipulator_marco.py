@@ -139,7 +139,7 @@ if __name__=='__main__':
     from orc.utils.robot_loaders import loadUR
     from orc.utils.robot_wrapper import RobotWrapper
     from orc.utils.robot_simulator import RobotSimulator
-    import ddp_manipulator_conf as conf
+    import my_orc.optimal_control.ddp.ddp_manipulator_conf_marco as conf
     np.set_printoptions(precision=2, suppress=True);
     
     ''' Test DDP with a manipulator
@@ -158,7 +158,7 @@ if __name__=='__main__':
     ddp_params['min_alpha_to_increase_mu'] = 0.1
     ddp_params['min_cost_impr'] = 1e-1
     ddp_params['max_line_search_iter'] = 10
-    ddp_params['exp_improvement_threshold'] = 1e-3
+    ddp_params['exp_improvement_threshold'] = 1e-5
     ddp_params['max_iter'] = 100
     DEBUG = False;
         
@@ -175,10 +175,10 @@ if __name__=='__main__':
     
     tau_g = robot.nle(conf.q0, np.zeros(robot.nv))
     for i in range(N):
-        U_bar[i,:] = tau_g
+        U_bar[i,:] = np.zeros(m) # tau_g
     
     ''' TASK FUNCTION  '''
-    lmbda = 1e-3           # control regularization
+    lmbda = 1e-2           # control regularization
     H_xx = np.zeros((N+1, n, n));
     h_x  = np.zeros((N+1, n));
     h_s  = np.zeros(N+1);
