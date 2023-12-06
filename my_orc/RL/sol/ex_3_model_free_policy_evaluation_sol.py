@@ -20,19 +20,45 @@ def mc_policy_eval(env, gamma, pi, nEpisodes, maxEpisodeLength,
         nprint: print some info every nprint iterations
     '''
     # create a vector N to store the number of times each state has been visited
+    N = np.zeros(env.nx)
     # create a vector C to store the cumulative cost associated to each state
+    C = np.zeros(env.nx)
     # create a vector V to store the Value
+    V = np.zeros(env.nx)
     # create a list V_err to store history of the error between real and estimated V table
+    V_err = []
+    X = np.zeros(maxEpisodeLength+1)
+    costs = np.zeros(maxEpisodeLength)
     
     # for each episode
-    # reset the environment to a random state
-    # keep track of the states visited in this episode
-    # keep track of the costs received at each state in this episode
-    # simulate the system using the policy pi   
-    # Update the V-Table by computing the cost-to-go J backward in time        
-    # compute V_err as: mean(abs(V-V_real))
-    V = np.zeros(env.nx);
-    V_err = []
+    for i in range(nEpisodes):
+        # reset the environment to a random state
+        env.reset()
+        # keep track of the states visited in this episode
+        X[0] = env.x
+        # keep track of the costs received at each state in this episode
+
+        # simulate the system using the policy pi   
+        for t in range (maxEpisodeLength):
+            u = pi(env, X[t])
+            X[t+1], costs[t] = env.step(u)
+        # Update the V-Table by computing the cost-to-go J backward in time        
+
+        J = 0
+        for k in range(maxEpisodeLength-1, -1, -1):
+            J = costs[k] + gamma * J
+            x = int(X[k])
+            N[x] += 1
+            C[x] += J
+            V[x] = C[x] / N[x]
+
+        # compute V_err as: mean(abs(V-V_real))
+        V_err.append(np.mean(np.abs(V -V_real)))
+
+        if (i % nprint == 0):
+            print("Iter", i, "V_err=", V_err[-1])
+            if (plot):
+                env.plot_V_table(V)
     
     return V, V_err
 
@@ -53,13 +79,32 @@ def td0_policy_eval(env, gamma, pi, V0, nEpisodes, maxEpisodeLength,
     '''
     
     # make a copy of V0 using np.copy(V0)
+    V = np.copy(V0)
     # create a list V__err to store the history of the error between real and estimated V table
-    # for each episode
-    # reset environment to random initial state
-    # simulate the system using the policy pi
-    # at each simulation step update the Value of the current state         
-    # compute V_err as: mean(abs(V-V_real))
-    V = np.zeros(env.nx);
     V_err = []
+    # for each episode
+    for k in range(1, nEpisodes + 1):
+        # reset environment to random initial state
+        env.reset()
+        for t in range(maxEpisodeLength):
+            # simulate the system using the policy pi
+            x = env.x
+            if (callable(pi)):
+                u = pi(env, x)
+            else:
+                u = pi[x]
+            x_next, cost = env.step(u)
+
+            # at each simulation step update the Value of the current state         
+            TD_target = cost + gamma * V[x_next]
+            V[x] += learningRate * (TD_target - V[x]) 
+
+    # compute V_err as: mean(abs(V-V_real))
+    V_err.append(np.mean(np.abs(V-V_real)))
+    if not k%nprint:
+        print("Iter", k, "done")
+        print("Mean|V_td - V_real|=%.5f"%V_err[-1])
+        if (plot):
+            env.plot_V_table(V)
     
     return V, V_err

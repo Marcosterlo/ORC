@@ -30,7 +30,7 @@ def policy_eval(env, gamma, pi, V, maxIters, threshold, plot=False, nprint=1000)
             # Use env.reset(x) to set the robot state
             env.reset(x)
             # To simulate the system use env.step(u) which returns the next state and the cost
-            if (pi is callable):
+            if (callable(pi)):
                 u = pi(env, x)
             else:
                 u = pi[x]

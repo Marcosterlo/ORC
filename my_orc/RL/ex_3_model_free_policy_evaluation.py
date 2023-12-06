@@ -5,8 +5,8 @@ Example of model-free policy evaluation with a simple discretized 1-DoF pendulum
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-from my_orc.RL.sol.ex_3_model_free_policy_evaluation_sol_prof import mc_policy_eval, td0_policy_eval
-# from my_orc.RL.sol.ex_3_model_free_policy_evaluation_sol import mc_policy_eval, td0_policy_eval
+#from sol.ex_3_model_free_policy_evaluation_sol_prof import mc_policy_eval, td0_policy_eval
+from sol.ex_3_model_free_policy_evaluation_sol import mc_policy_eval, td0_policy_eval
 
 def policy_pendulum(env, x):
     ''' The policy to be evaluated '''
@@ -40,12 +40,12 @@ if __name__=="__main__":
         DISCOUNT          = 0.9     # Discount factor 
         N_EPISODS         = 1000    # number of episodes
         MAX_EPISOD_LENGTH = 100     # max length of an episode
-        LEARNING_RATES    = []     # TD0 learning rates
+        LEARNING_RATES    = [0.5, 1.0]     # TD0 learning rates
         CONVERGENCE_THR   = 1e-5    # convergence threshold of policy evaluation
         NOISE_STDDEV      = 0.0     # standard deviation of the noise acting on the dynamics
         NPRINT            = 200     # print some info every NPRINT iterations
         
-        from my_orc.RL.dpendulum import DPendulum
+        from dpendulum import DPendulum
         nq=21   # number of discretization steps for the joint angle q
         nv=11   # number of discretization steps for the joint velocity v
         nu=11   # number of discretization steps for the joint torque u
@@ -56,7 +56,7 @@ if __name__=="__main__":
         
         # use this to display policy behavior
         #render_policy(env, policy)
-        from my_orc.RL.sol.ex_0_policy_evaluation_sol_prof import policy_eval
+        from sol.ex_0_policy_evaluation_sol_prof import policy_eval
         print("\nGonna compute real Value function")
         V_real = policy_eval(env, DISCOUNT, policy, np.zeros(env.nx), N_EPISODS, CONVERGENCE_THR, False)
     elif(env_name == 'ABC'):
@@ -66,7 +66,7 @@ if __name__=="__main__":
         LEARNING_RATES    = np.array([0.2])     # TD0 learning rates
         NPRINT            = 1 #N_EPISODS-1    # print some info every NPRINT iterations
         
-        from my_orc.RL.abc_example import AbcExample
+        from abc_example import AbcExample
         env = AbcExample()
         policy = np.zeros(env.nx)
         V_real = np.array([0.5, 0.5, 0.5, 0.0])
