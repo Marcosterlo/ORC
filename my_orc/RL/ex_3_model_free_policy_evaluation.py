@@ -30,7 +30,7 @@ if __name__=="__main__":
     np.random.seed(RANDOM_SEED)
     
     ### --- Hyper paramaters
-    DO_PLOTS          = 1   # if True it plots the Value table every NPRINT iterations
+    DO_PLOTS          = 0   # if True it plots the Value table every NPRINT iterations
     
     ### --- Environment
     env_name = 'pendulum'
@@ -38,11 +38,14 @@ if __name__=="__main__":
     
     if(env_name == 'pendulum'):
         DISCOUNT          = 0.9     # Discount factor 
-        N_EPISODS         = 1000    # number of episodes
+        N_EPISODS         = 2000    # number of episodes
+        # N_EPISODS         = 1000    # number of episodes
         MAX_EPISOD_LENGTH = 100     # max length of an episode
-        LEARNING_RATES    = [0.5, 1.0]     # TD0 learning rates
+        LEARNING_RATES    = [0.4]     # TD0 learning rates
+        # LEARNING_RATES    = [0.5, 1.0]     # TD0 learning rates
         CONVERGENCE_THR   = 1e-5    # convergence threshold of policy evaluation
-        NOISE_STDDEV      = 0.0     # standard deviation of the noise acting on the dynamics
+        NOISE_STDDEV      = 0.2     # standard deviation of the noise acting on the dynamics
+        # NOISE_STDDEV      = 0.0     # standard deviation of the noise acting on the dynamics
         NPRINT            = 200     # print some info every NPRINT iterations
         
         from dpendulum import DPendulum
@@ -80,8 +83,12 @@ if __name__=="__main__":
         env.pendulum.noise_stddev = NOISE_STDDEV
     
     print("\nEstimate Value function with MC")
-    V_mc, err_mc = mc_policy_eval(env, DISCOUNT, policy, N_EPISODS, MAX_EPISOD_LENGTH,
-                       V_real, DO_PLOTS, NPRINT)
+    V_mc, err_mc, N_mc = mc_policy_eval(env, DISCOUNT, policy, N_EPISODS, MAX_EPISOD_LENGTH, V_real, DO_PLOTS, NPRINT)
+
+    N_sorted = np.sort(N_mc)
+    plt.plot(N_sorted)
+    plt.title("Number of visits to each state for MC")
+    plt.show()
     
     V_td = len(LEARNING_RATES)*[None]
     err_td = len(LEARNING_RATES)*[None]
