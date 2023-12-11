@@ -79,7 +79,12 @@ class DPendulum:
         return self.x
 
     def step(self,iu):
-        cost     = -1 if self.x==self.goal else 0
+        # sparse reward: -1 only on target
+        # cost     = -1 if self.x==self.goal else 0
+        
+        # Cost proportional to distance from goadl
+        x_cont = self.d2c(self.i2x(self.x))
+        cost = x_cont[0]**2 + x_cont[1]**2
         self.x   = self.dynamics(self.x,iu)
         return self.x, cost
 
